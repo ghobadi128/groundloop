@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#5b3a29">
+<title>GroundLoop — Coffee Grounds Marketplace</title>
+<meta name="description" content="GroundLoop connects coffee shops with gardeners and composters to give used coffee grounds a second life.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --brown:#5b3a29; --brown-d:#3f2719; --tan:#c8a27a; --cream:#f7f1e8;
+    --green:#2e7d52; --green-l:#e3f1e9; --amber:#d98324; --ink:#241910;
+    --muted:#8a7a6c; --line:#e7ddcf; --white:#fff; --danger:#c0392b;
+    --shadow:0 6px 24px rgba(60,40,20,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--cream);color:var(--ink);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);position:relative;
+    display:flex;flex-direction:column;box-shadow:0 0 40px rgba(0,0,0,.06)}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  input,select,textarea{font-family:inherit;font-size:16px;width:100%;padding:13px 14px;
+    border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--tan)}
+  label{font-size:13px;font-weight:600;color:var(--brown);display:block;margin:14px 0 6px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--brown);
+    color:#fff;padding:14px 18px;border-radius:14px;font-weight:700;font-size:15px;width:100%;transition:transform .05s,opacity .2s}
+  .btn:active{transform:scale(.98)}
+  .btn.green{background:var(--green)} .btn.amber{background:var(--amber)}
+  .btn.ghost{background:transparent;color:var(--brown);border:1.5px solid var(--tan)}
+  .btn.sm{width:auto;padding:9px 14px;font-size:13px;border-radius:11px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;
+    font-size:12px;font-weight:700;background:var(--green-l);color:var(--green)}
+  .chip.amber{background:#fbedd9;color:var(--amber)} .chip.grey{background:#eee5d8;color:var(--muted)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+  .muted{color:var(--muted)} h1,h2,h3{margin:0 0 4px}
+  .pad{padding:18px} .row{display:flex;align-items:center;gap:10px}
+  .between{display:flex;align-items:center;justify-content:space-between}
+  .grow{flex:1} .center{text-align:center} .hidden{display:none!important}
+  .topbar{position:sticky;top:0;z-index:30;background:var(--brown);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+  .topbar .logo{font-weight:800;font-size:18px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .topbar .icon-btn{color:#fff;font-size:20px;position:relative;padding:4px}
+  .badge{position:absolute;top:-2px;right:-4px;background:var(--amber);color:#fff;font-size:10px;font-weight:800;
+    border-radius:999px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+  .modeflag{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:999px;margin-left:6px;font-weight:700;vertical-align:middle}
+  .trial-banner{background:var(--amber);color:#fff;font-size:13px;font-weight:600;padding:8px 18px;text-align:center}
+  .trial-banner.expired{background:var(--danger)}
+  .content{flex:1;overflow-y:auto;padding-bottom:78px}
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;
+    border-top:1px solid var(--line);display:flex;z-index:30;padding:7px 0 calc(7px + env(safe-area-inset-bottom))}
+  .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10.5px;font-weight:600;padding:5px 0}
+  .nav button .ic{font-size:21px} .nav button.active{color:var(--brown)}
+  .listing{display:flex;gap:12px;align-items:flex-start}
+  .thumb{width:64px;height:64px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px;background:var(--green-l)}
+  .meta{font-size:12.5px;color:var(--muted)} .qty{font-weight:800;color:var(--brown)}
+  .seg{display:flex;background:#efe6d8;border-radius:14px;padding:4px;margin:0 0 14px}
+  .seg button{flex:1;padding:9px;border-radius:11px;font-weight:700;font-size:13px;color:var(--muted)}
+  .seg button.active{background:#fff;color:var(--brown);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .catbar{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none} .catbar::-webkit-scrollbar{display:none}
+  .catbar button{white-space:nowrap;padding:8px 13px;border-radius:999px;font-size:13px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--muted)}
+  .catbar button.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+  #map{height:330px;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .leaflet-popup-content{margin:10px 12px;font-size:13px}
+  .overlay{position:fixed;inset:0;background:rgba(30,18,10,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .sheet{background:var(--cream);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:8px 18px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;animation:up .25s ease}
+  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .grab{width:42px;height:5px;background:#d8cbb9;border-radius:999px;margin:6px auto 12px}
+  .stat{flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+  .stat .n{font-size:24px;font-weight:800;color:var(--green)} .stat .l{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;z-index:80;font-weight:600;box-shadow:var(--shadow);max-width:90%;text-align:center}
+  .review{border-top:1px solid var(--line);padding:10px 0;font-size:13.5px} .stars{color:var(--amber);letter-spacing:1px}
+  .msg{max-width:78%;padding:10px 13px;border-radius:16px;margin-bottom:8px;font-size:14px;line-height:1.35}
+  .msg.them{background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px}
+  .msg.me{background:var(--brown);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
+  .notif{display:flex;gap:11px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line)}
+  .dot{width:9px;height:9px;border-radius:999px;background:var(--amber);margin-top:6px;flex-shrink:0}
+  .price-card{border:2px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px;background:#fff}
+  .price-card.feat{border-color:var(--green);position:relative}
+  .price-card .amt{font-size:30px;font-weight:800;color:var(--brown)}
+  .feat-list{list-style:none;padding:0;margin:12px 0 0;font-size:14px}
+  .feat-list li{padding:5px 0 5px 26px;position:relative}
+  .feat-list li:before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:800}
+  .hero{background:linear-gradient(155deg,var(--brown),var(--brown-d));color:#fff;padding:44px 24px 36px;text-align:center}
+  .hero .big{font-size:30px;font-weight:800;line-height:1.15;margin:14px 0 8px}
+  .hero .sub{opacity:.9;font-size:15px;margin-bottom:24px}
+  .rolebtn{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:15px;text-align:left;width:100%;margin-bottom:10px;display:flex;gap:13px;align-items:center}
+  .rolebtn .e{font-size:26px} .rolebtn.sel{border-color:var(--brown);background:#fff6ec}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:14px} a{color:var(--green)}
+  /* How it works roadmap */
+  .hiw{padding:30px 20px;background:var(--cream)}
+  .hiw h2{text-align:center;font-size:22px;margin-bottom:4px}
+  .hiw .lead{text-align:center;color:var(--muted);font-size:14px;margin-bottom:18px}
+  .lane-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
+  .lane-tabs button{padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;border:1.5px solid var(--tan);background:#fff;color:var(--brown)}
+  .lane-tabs button.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .road{position:relative;padding-left:42px}
+  .road:before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:3px;background:linear-gradient(var(--tan),var(--green));border-radius:9px}
+  .step{position:relative;margin-bottom:16px}
+  .step .num{position:absolute;left:-42px;top:0;width:34px;height:34px;border-radius:50%;background:var(--brown);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:var(--shadow)}
+  .step .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow)}
+  .step .box b{display:block;font-size:15px}
+  .step .box .d{font-size:13px;color:var(--muted);margin-top:2px}
+  .step .ico{font-size:18px;margin-right:6px}
+  .fab{position:fixed;bottom:90px;right:calc(50% - 240px + 18px);background:var(--amber);color:#fff;width:56px;height:56px;border-radius:18px;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:25}
+  @media(max-width:520px){.fab{right:18px}}
+  .deliv-opt{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;width:100%;text-align:left}
+  .deliv-opt .e{font-size:26px}
+</style>
+</head>
+<body>
+<div id="app"><div id="screen"><div class="pad center" style="padding-top:80px"><div style="font-size:46px">☕🔁</div><p class="muted">Loading GroundLoop…</p></div></div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+/* ============================================================
+   GroundLoop — production-ready single-file marketplace
+   MODE = 'live'  when Supabase keys present (shared cloud DB)
+   MODE = 'demo'  otherwise (data in browser localStorage)
+============================================================ */
+const CFG = window.GROUNDLOOP_CONFIG || {};
+const $  = (s,el=document)=>el.querySelector(s);
+const el = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstElementChild;};
+const screen = ()=>$('#screen');
+const DAY = 86400000;
+const fmtDate = (ts)=>new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const genId = (p)=> (window.crypto&&crypto.randomUUID)?crypto.randomUUID():(p+Date.now()+Math.random().toString(16).slice(2));
+
+let sb=null, MODE='demo';
+if(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase){
+  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  MODE='live';
+}
+
+const CATS = [
+  {id:'grounds',  name:'Coffee Grounds', emoji:'☕'},
+  {id:'grain',    name:'Brewery Grain',  emoji:'🌾'},
+  {id:'woodchip', name:'Wood Chips',     emoji:'🪵'},
+  {id:'cardboard',name:'Cardboard',      emoji:'📦'},
+  {id:'mulch',    name:'Mulch',          emoji:'🍂'},
+  {id:'compost',  name:'Compost',        emoji:'🍃'},
+];
+const catOf = id => CATS.find(c=>c.id===id)||CATS[0];
+
+/* ---------------- in-memory cache (UI reads from here) ---------------- */
+let state = {
+  session:null, users:[], listings:[], reservations:[],
+  threads:{}, notifications:[], nextId:100,
+};
+function user(id){ return state.users.find(u=>u.id===id); }
+function me(){ return state.session ? user(state.session) : null; }
+
+/* ============================================================
+   DATA LAYER  (demo = localStorage,  live = Supabase)
+============================================================ */
+const LS_KEY='groundloop_v2';
+function lsSave(){ if(MODE==='demo') localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+function seedDemo(){
+  const now=Date.now();
+  state={
+    session:null,
+    users:[
+      {id:'u_shop1',role:'shop',name:'Rwanda Roasters',bizName:'Rwanda Roasters',email:'shop@demo.com',pass:'demo',lat:40.7308,lng:-73.9973,joined:now-40*DAY,rating:4.8,reviews:[]},
+      {id:'u_shop2',role:'shop',name:'Brooklyn Bean Co',bizName:'Brooklyn Bean Co',email:'shop2@demo.com',pass:'demo',lat:40.7128,lng:-74.0060,joined:now-25*DAY,rating:4.6,reviews:[]},
+      {id:'u_col1',role:'collector',name:'Maya Greene',email:'collector@demo.com',pass:'demo',joined:now-2*DAY,trialStart:now-2*DAY,plan:'trial',rating:5,reviews:[]},
+      {id:'u_drv1',role:'driver',name:'Sam Rivera',email:'driver@demo.com',pass:'demo',joined:now-10*DAY,rating:4.9,reviews:[]},
+      {id:'u_admin',role:'admin',name:'Admin',email:'admin@demo.com',pass:'demo',joined:now-90*DAY,reviews:[]},
+    ],
+    listings:[
+      {id:'l1',shopId:'u_shop1',cat:'grounds',title:'Fresh espresso grounds',qty:18,unit:'lbs',window:'Today 2–6pm',lat:40.7308,lng:-73.9973,note:'Bagged & ready. BYO container welcome.',created:now-3*3600e3,status:'open'},
+      {id:'l2',shopId:'u_shop2',cat:'grounds',title:'Drip + espresso mix',qty:32,unit:'lbs',window:'Tomorrow 9am–12pm',lat:40.7128,lng:-74.0060,note:'Large batch from weekend rush.',created:now-6*3600e3,status:'open'},
+      {id:'l3',shopId:'u_shop1',cat:'cardboard',title:'Flattened coffee boxes',qty:25,unit:'lbs',window:'Today 4–7pm',lat:40.7320,lng:-73.9950,note:'Clean, dry, great for sheet mulching.',created:now-1*3600e3,status:'open'},
+      {id:'l4',shopId:'u_shop2',cat:'grain',title:'Spent brewery grain (partner)',qty:60,unit:'lbs',window:'Fri 10am–2pm',lat:40.7100,lng:-74.0080,note:'From neighboring brewery.',created:now-12*3600e3,status:'open'},
+    ],
+    reservations:[{id:'r1',listingId:'l2',userId:'u_col1',mode:'pickup',status:'completed',lbs:32,created:now-5*DAY,completed:now-5*DAY}],
+    threads:{},
+    notifications:[
+      {id:'n1',userId:'u_col1',text:'New listing nearby: Flattened coffee boxes (25 lbs)',ts:now-1*3600e3,read:false},
+      {id:'n2',userId:'u_col1',text:'Your pickup at Brooklyn Bean Co was completed. 32 lbs diverted! 🌱',ts:now-5*DAY,read:true},
+    ],
+    nextId:100,
+  };
+  lsSave();
+}
+
+/* ---- mappers between DB rows (snake) and app objects (camel) ---- */
+const mapProfile = r=>({id:r.id,role:r.role,name:r.name,bizName:r.biz_name,email:r.email,lat:r.lat,lng:r.lng,
+  plan:r.plan,planType:r.plan_type,trialStart:r.trial_start?+new Date(r.trial_start):Date.now(),
+  joined:r.created_at?+new Date(r.created_at):Date.now(),rating:r.rating||0,reviews:[]});
+const mapListing = r=>({id:r.id,shopId:r.shop_id,cat:r.cat,title:r.title,qty:Number(r.qty),unit:r.unit,
+  window:r.pickup_window,note:r.note,lat:r.lat,lng:r.lng,status:r.status,created:+new Date(r.created_at)});
+const mapResv = r=>({id:r.id,listingId:r.listing_id,userId:r.user_id,mode:r.mode,status:r.status,lbs:Number(r.lbs),
+  driverId:r.driver_id,created:+new Date(r.created_at),completed:r.completed_at?+new Date(r.completed_at):null});
+
+async function hydrateLive(){
+  const [{data:profs},{data:lists},{data:resv},{data:msgs},{data:notes},{data:revs}] = await Promise.all([
+    sb.from('profiles').select('*'),
+    sb.from('listings').select('*').order('created_at',{ascending:false}),
+    sb.from('reservations').select('*'),
+    sb.from('messages').select('*').order('created_at'),
+    sb.from('notifications').select('*').order('created_at',{ascending:false}),
+    sb.from('reviews').select('*').order('created_at',{ascending:false}),
+  ]);
+  state.users = (profs||[]).map(mapProfile);
+  (revs||[]).forEach(rv=>{ const s=user(rv.shop_id); if(s) s.reviews.push({stars:rv.stars,text:rv.body,by:rv.by_name,ts:+new Date(rv.created_at)}); });
+  state.listings = (lists||[]).map(mapListing);
+  state.reservations = (resv||[]).map(mapResv);
+  state.threads={}; (msgs||[]).forEach(m=>{ (state.threads[m.thread_key]=state.threads[m.thread_key]||[]).push({from:m.from_id,text:m.body,ts:+new Date(m.created_at)}); });
+  state.notifications = (notes||[]).map(n=>({id:n.id,userId:n.user_id,text:n.body,ts:+new Date(n.created_at),read:n.read}));
+}
+
+/* ---- write helpers (used by UI) ---- */
+async function upsertProfile(u){
+  if(MODE==='demo'){ lsSave(); return; }
+  await sb.from('profiles').upsert({id:u.id,role:u.role,name:u.name,biz_name:u.bizName||null,email:u.email,
+    lat:u.lat,lng:u.lng,plan:u.plan||'trial',plan_type:u.planType||null,
+    trial_start:new Date(u.trialStart||Date.now()).toISOString(),rating:u.rating||0});
+}
+async function addListingDB(l){
+  if(MODE==='demo'){ lsSave(); return; }
+  await sb.from('listings').insert({id:l.id,shop_id:l.shopId,cat:l.cat,title:l.title,qty:l.qty,unit:l.unit,
+    pickup_window:l.window,note:l.note,lat:l.lat,lng:l.lng,status:l.status});
+}
+async function updateListingDB(l){ if(MODE==='demo'){lsSave();return;} await sb.from('listings').update({status:l.status,qty:l.qty}).eq('id',l.id); }
+async function addResvDB(r){
+  if(MODE==='demo'){ lsSave(); return; }
+  await sb.from('reservations').insert({id:r.id,listing_id:r.listingId,user_id:r.userId,mode:r.mode,status:r.status,lbs:r.lbs,driver_id:r.driverId||null});
+}
+async function updateResvDB(r){ if(MODE==='demo'){lsSave();return;} await sb.from('reservations').update({status:r.status,driver_id:r.driverId||null,completed_at:r.completed?new Date(r.completed).toISOString():null}).eq('id',r.id); }
+async function addNotifDB(n){ if(MODE==='demo'){lsSave();return;} await sb.from('notifications').insert({id:n.id,user_id:n.userId,body:n.text,read:!!n.read}); }
+async function markNotifsRead(ids){ if(MODE==='demo'){lsSave();return;} if(ids.length) await sb.from('notifications').update({read:true}).in('id',ids); }
+async function addMsgDB(k,m){ if(MODE==='demo'){lsSave();return;} await sb.from('messages').insert({thread_key:k,from_id:m.from,body:m.text}); }
+async function addReviewDB(shopId,rv){ if(MODE==='demo'){lsSave();return;} await sb.from('reviews').insert({shop_id:shopId,by_name:rv.by,stars:rv.stars,body:rv.text}); }
+
+/* ---- realtime: keep listings/notifications live ---- */
+function startRealtime(){
+  if(MODE!=='live') return;
+  sb.channel('gl-listings').on('postgres_changes',{event:'*',schema:'public',table:'listings'},async ()=>{
+    const {data}=await sb.from('listings').select('*').order('created_at',{ascending:false});
+    state.listings=(data||[]).map(mapListing); if(route.tab==='browse'||route.tab==='mine') render();
+  }).subscribe();
+  sb.channel('gl-notes').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},(p)=>{
+    const n=p.new; if(me()&&n.user_id===me().id){ state.notifications.unshift({id:n.id,userId:n.user_id,text:n.body,ts:Date.now(),read:false}); toast('🔔 '+n.body); render(); }
+  }).subscribe();
+}
+
+/* ============================================================
+   GEOLOCATION / NEAR ME
+============================================================ */
+let myLoc=null;
+function distMi(a,b){
+  if(!a||!b||a.lat==null||b.lat==null) return null;
+  const R=3959,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180,
+    la1=a.lat*Math.PI/180,la2=b.lat*Math.PI/180;
+  const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLng/2)**2;
+  return R*2*Math.asin(Math.sqrt(h));
+}
+function locate(cb){
+  if(!navigator.geolocation){ cb&&cb(null); return; }
+  navigator.geolocation.getCurrentPosition(
+    p=>{ myLoc={lat:p.coords.latitude,lng:p.coords.longitude}; cb&&cb(myLoc); },
+    ()=>{ cb&&cb(null); },{enableHighAccuracy:true,timeout:8000,maximumAge:60000});
+}
+
+/* ---------------- toast ---------------- */
+let toastT;
+function toast(msg){ clearTimeout(toastT); let t=$('#toast'); if(t)t.remove();
+  t=el(`<div id="toast" class="toast">${msg}</div>`); document.body.appendChild(t); toastT=setTimeout(()=>t.remove(),2800); }
+
+/* ---------------- router ---------------- */
+let route={tab:'browse'};
+function go(tab){ route.tab=tab; render(); }
+
+/* ============================================================
+   BOOT
+============================================================ */
+async function boot(){
+  // handle Stripe return (?paid=monthly|annual)
+  const params=new URLSearchParams(location.search);
+  const paid=params.get('paid');
+  if(MODE==='live'){
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){ await hydrateLive(); state.session=session.user.id;
+      if(!user(state.session)) state.session=null; }
+    startRealtime();
+  } else {
+    const saved=localStorage.getItem(LS_KEY);
+    if(saved){ try{state=JSON.parse(saved);}catch(e){seedDemo();} } else seedDemo();
+  }
+  if(paid && me() && me().role==='collector'){
+    const u=me(); u.plan='active'; u.planType=paid==='annual'?'annual':'monthly'; await upsertProfile(u);
+    history.replaceState({},'',location.pathname); toast('🎉 Subscription active!');
+  }
+  locate(()=>{ if(state.session) render(); });
+  render();
+}
+
+/* ============================================================
+   TRIAL / SUBSCRIPTION
+============================================================ */
+const TRIAL_DAYS=30;
+function trialDaysLeft(u){ if(!u||u.role!=='collector') return null;
+  if(u.plan==='active') return 'subscribed';
+  const used=(Date.now()-(u.trialStart||u.joined))/DAY; return Math.max(0,Math.ceil(TRIAL_DAYS-used)); }
+function collectorLocked(u){ if(!u||u.role!=='collector') return false; if(u.plan==='active') return false; return trialDaysLeft(u)<=0; }
+
+/* ============================================================
+   LANDING (with How-it-works roadmap)
+============================================================ */
+let signupDraft={role:null}, hiwLane='collector';
+function renderLanding(){
+  screen().innerHTML='';
+  const v=el(`<div>
+    <div class="hero">
+      <div style="font-size:46px">☕🔁</div>
+      <div class="big">Turn coffee waste<br>into garden gold</div>
+      <div class="sub">GroundLoop connects cafés with gardeners, composters & growers — reserve free grounds & organic byproducts near you, in real time.</div>
+      <button class="btn green" id="getStarted">Get started — 30 days free</button>
+      <button class="btn ghost" id="toLogin" style="margin-top:10px;color:#fff;border-color:rgba(255,255,255,.5)">I already have an account</button>
+    </div>
+    <div class="hiw" id="hiw"></div>
+    <div class="pad" style="padding-top:0">
+      <div class="card"><div class="row"><div class="thumb">📍</div><div><b>Real-time & near you</b><div class="meta">See live availability on a map, sorted by what's closest to your location.</div></div></div></div>
+      <div class="card"><div class="row"><div class="thumb" style="background:#fbedd9">🏪</div><div><b>Free for coffee shops</b><div class="meta">Post surplus in seconds, cut waste-hauling costs, get sustainability reports.</div></div></div></div>
+      <p class="center muted" style="font-size:12px">${MODE==='live'?'Live — accounts & data stored securely in the cloud.':'Demo mode — data saved in your browser.'}</p>
+    </div>
+  </div>`);
+  $('#getStarted',v).onclick=()=>renderSignup();
+  $('#toLogin',v).onclick=()=>renderLogin();
+  renderHowItWorks($('#hiw',v));
+  screen().appendChild(v);
+}
+function renderHowItWorks(box){
+  const lanes={
+    collector:[
+      ['📍','Share your location','Allow location so GroundLoop shows coffee shops and free material nearest you.'],
+      ['🗺️','Browse the live map','See real-time listings — grounds, mulch, cardboard & more — sorted by distance.'],
+      ['🧺','Reserve or get it delivered','Tap to reserve for free pickup, or request delivery to your door.'],
+      ['🌱','Collect & track impact','Mark it collected and watch the pounds you\'ve diverted from landfill add up.'],
+    ],
+    shop:[
+      ['📝','Create your shop profile','Sign up as a coffee shop — it\'s free, forever.'],
+      ['📣','Post available material','List quantity, pickup window & a photo. Nearby collectors get notified instantly.'],
+      ['🤝','Hand it off','Collectors reserve and pick up — less waste hauled, lower disposal costs.'],
+      ['📊','Show your impact','Download sustainability reports showing pounds diverted from landfill.'],
+    ],
+  };
+  box.innerHTML=`<h2>How GroundLoop works</h2><div class="lead">Pick your path — it takes about a minute to start.</div>
+    <div class="lane-tabs">
+      <button data-l="collector" class="${hiwLane==='collector'?'active':''}">🌱 I want material</button>
+      <button data-l="shop" class="${hiwLane==='shop'?'active':''}">🏪 I have material</button>
+    </div><div class="road" id="road"></div>`;
+  const road=$('#road',box);
+  lanes[hiwLane].forEach((s,i)=>road.appendChild(el(`<div class="step"><div class="num">${i+1}</div>
+    <div class="box"><b><span class="ico">${s[0]}</span>${s[1]}</b><div class="d">${s[2]}</div></div></div>`)));
+  box.querySelectorAll('.lane-tabs button').forEach(b=>b.onclick=()=>{hiwLane=b.dataset.l;renderHowItWorks(box);});
+}
+
+function renderLogin(){
+  const demoBox = MODE==='demo' ? `<div class="card" style="margin-top:22px;background:#fff6ec">
+      <b style="font-size:13px">Demo accounts (password: demo)</b>
+      <div class="meta" style="margin-top:6px;line-height:1.7">☕ shop@demo.com — coffee shop<br>🌱 collector@demo.com — collector (trial)<br>🚐 driver@demo.com — delivery partner<br>🛠 admin@demo.com — administrator</div>
+      <button class="btn ghost sm" id="quickCol" style="margin-top:10px">Quick login as collector</button></div>` : '';
+  const v=el(`<div class="pad">
+    <button class="btn ghost sm" id="back" style="margin-bottom:18px">← Back</button>
+    <h1>Welcome back</h1><p class="muted">Log in to GroundLoop.</p>
+    <label>Email</label><input id="email" type="email" placeholder="you@email.com" autocomplete="username">
+    <label>Password</label><input id="pass" type="password" placeholder="••••••" autocomplete="current-password">
+    <button class="btn" id="login" style="margin-top:20px">Log in</button>${demoBox}</div>`);
+  $('#back',v).onclick=renderLanding;
+  if($('#quickCol',v)) $('#quickCol',v).onclick=()=>{$('#email',v).value='collector@demo.com';$('#pass',v).value='demo';};
+  $('#login',v).onclick=async()=>{
+    const e=$('#email',v).value.trim().toLowerCase(), p=$('#pass',v).value;
+    if(!e||!p){ toast('Enter email & password'); return; }
+    $('#login',v).disabled=true;
+    if(MODE==='live'){
+      const {data,error}=await sb.auth.signInWithPassword({email:e,password:p});
+      if(error){ toast(error.message); $('#login',v).disabled=false; return; }
+      await hydrateLive(); state.session=data.user.id; render();
+    } else {
+      const u=state.users.find(x=>x.email.toLowerCase()===e&&x.pass===p);
+      if(!u){ toast('Invalid email or password'); $('#login',v).disabled=false; return; }
+      state.session=u.id; lsSave(); render();
+    }
+  };
+  screen().innerHTML=''; screen().appendChild(v);
+}
+
+function renderSignup(){
+  const roles=[
+    {id:'collector',e:'🌱',t:'Collector',d:'Gardener, composter, grower, school or artist'},
+    {id:'shop',e:'🏪',t:'Coffee Shop / Business',d:'Post surplus grounds & byproducts'},
+    {id:'driver',e:'🚐',t:'Delivery Partner',d:'Earn by delivering reservations'},
+  ];
+  const v=el(`<div class="pad"><button class="btn ghost sm" id="back" style="margin-bottom:18px">← Back</button>
+    <h1>Create account</h1><p class="muted">Pick how you'll use GroundLoop.</p>
+    <div id="roles" style="margin-top:14px"></div><div id="form" class="hidden"></div></div>`);
+  const rb=$('#roles',v);
+  roles.forEach(r=>{ const b=el(`<button class="rolebtn"><span class="e">${r.e}</span><span><b>${r.t}</b><div class="meta">${r.d}</div></span></button>`);
+    b.onclick=()=>{ signupDraft.role=r.id; renderSignupForm($('#form',v)); [...rb.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); };
+    rb.appendChild(b); });
+  $('#back',v).onclick=renderLanding;
+  screen().innerHTML=''; screen().appendChild(v);
+}
+function renderSignupForm(box){
+  const isShop=signupDraft.role==='shop';
+  box.classList.remove('hidden'); box.innerHTML='';
+  const f=el(`<div>
+    <label>${isShop?'Business name':'Full name'}</label><input id="name" placeholder="${isShop?'e.g. Maple St. Coffee':'e.g. Maya Greene'}">
+    <label>Email</label><input id="email" type="email" placeholder="you@email.com">
+    <label>Password</label><input id="pass" type="password" placeholder="Choose a password (6+ chars)">
+    ${isShop?`<div class="card" style="margin-top:14px"><b>📍 We'll use your location</b><div class="meta">So nearby collectors can find your listings. You can allow it next.</div></div>`:''}
+    ${signupDraft.role==='collector'?`<div class="card" style="background:var(--green-l);margin-top:18px;border-color:#bfe0cd"><b style="color:var(--green)">🎁 30-day free trial</b><div class="meta" style="margin-top:4px">Full access to reservations, delivery & alerts. No charge today. Cancel anytime.</div></div>`:''}
+    <button class="btn green" id="create" style="margin-top:18px">Create account</button></div>`);
+  $('#create',f).onclick=async()=>{
+    const name=$('#name',f).value.trim(), email=$('#email',f).value.trim().toLowerCase(), pass=$('#pass',f).value;
+    if(!name||!email||!pass){ toast('Fill in all fields'); return; }
+    $('#create',f).disabled=true;
+    const finish=(u)=>{ state.users.push(u); state.session=u.id;
+      toast(signupDraft.role==='collector'?'Welcome! Your 30-day trial started 🎉':'Account created 🎉'); render(); };
+    const coords = isShop ? (myLoc||{lat:CFG.DEFAULT_CENTER.lat+(Math.random()-.5)*.03,lng:CFG.DEFAULT_CENTER.lng+(Math.random()-.5)*.03}) : {};
+    if(MODE==='live'){
+      const {data,error}=await sb.auth.signUp({email,password:pass});
+      if(error){ toast(error.message); $('#create',f).disabled=false; return; }
+      if(!data.user){ toast('Check your email to confirm, then log in.'); renderLogin(); return; }
+      const now=Date.now();
+      const u={id:data.user.id,role:signupDraft.role,name,email,joined:now,rating:0,reviews:[],...coords};
+      if(signupDraft.role==='collector'){ u.plan='trial'; u.trialStart=now; }
+      if(isShop) u.bizName=name;
+      await upsertProfile(u);
+      // ensure a session (if email confirm is off, signUp returns a session)
+      if(!data.session){ await sb.auth.signInWithPassword({email,password:pass}); }
+      finish(u);
+    } else {
+      if(state.users.some(u=>u.email.toLowerCase()===email)){ toast('Email already registered'); $('#create',f).disabled=false; return; }
+      const now=Date.now();
+      const u={id:genId('u_'),role:signupDraft.role,name,email,pass,joined:now,rating:0,reviews:[],...coords};
+      if(signupDraft.role==='collector'){ u.plan='trial'; u.trialStart=now; }
+      if(isShop) u.bizName=name;
+      lsSave(); finish(u);
+    }
+  };
+  box.appendChild(f);
+}
+
+/* ============================================================
+   SHELL
+============================================================ */
+function render(){
+  if(!state.session || !me()){ renderLanding(); return; }
+  const u=me();
+  const tabs = u.role==='shop'
+    ? [['browse','🗺️','Map'],['mine','📋','Listings'],['impact','📊','Impact'],['msgs','💬','Inbox'],['me','👤','Me']]
+    : u.role==='driver'
+    ? [['jobs','🚐','Jobs'],['browse','🗺️','Map'],['msgs','💬','Inbox'],['me','👤','Me']]
+    : u.role==='admin'
+    ? [['admin','🛠️','Admin'],['browse','🗺️','Map'],['impact','📊','Impact'],['me','👤','Me']]
+    : [['browse','🗺️','Browse'],['reserv','🧺','My Pickups'],['alerts','🔔','Alerts'],['msgs','💬','Inbox'],['me','👤','Me']];
+  if(!tabs.some(t=>t[0]===route.tab)) route.tab=tabs[0][0];
+  const unread=state.notifications.filter(n=>n.userId===u.id&&!n.read).length;
+  const left=trialDaysLeft(u);
+  let banner='';
+  if(u.role==='collector'&&u.plan!=='active'){
+    banner=left>0?`<div class="trial-banner" id="trialB">🎁 ${left} day${left===1?'':'s'} left in your free trial · <u>Subscribe</u></div>`
+      :`<div class="trial-banner expired" id="trialB">⏳ Your free trial ended · <u>Subscribe to continue</u></div>`;
+  }
+  screen().innerHTML='';
+  const shell=el(`<div style="display:flex;flex-direction:column;min-height:100vh">
+    <div class="topbar"><div class="logo">☕🔁 GroundLoop<span class="modeflag">${MODE==='live'?'LIVE':'DEMO'}</span></div>
+      <button class="icon-btn" id="bell">🔔${unread?`<span class="badge">${unread}</span>`:''}</button></div>
+    ${banner}<div class="content" id="content"></div><div class="nav" id="nav"></div></div>`);
+  screen().appendChild(shell);
+  const nav=$('#nav',shell);
+  tabs.forEach(([id,ic,label])=>{ const b=el(`<button class="${route.tab===id?'active':''}"><span class="ic">${ic}</span>${label}</button>`); b.onclick=()=>go(id); nav.appendChild(b); });
+  $('#bell',shell).onclick=openNotifications;
+  if($('#trialB',shell)) $('#trialB',shell).onclick=openPaywall;
+  const c=$('#content',shell), t=route.tab;
+  if(t==='browse') viewBrowse(c);
+  else if(t==='mine') viewMyListings(c);
+  else if(t==='impact') viewImpact(c);
+  else if(t==='reserv') viewReservations(c);
+  else if(t==='alerts') viewAlerts(c);
+  else if(t==='msgs') viewInbox(c);
+  else if(t==='jobs') viewJobs(c);
+  else if(t==='admin') viewAdmin(c);
+  else if(t==='me') viewProfile(c);
+}
+
+/* ============================================================
+   BROWSE + MAP (with near-me)
+============================================================ */
+let browseMode='map', browseCat='all', mapObj=null;
+function openListings(){ return state.listings.filter(l=>l.status==='open'); }
+function withDist(list){ if(!myLoc) return list.map(l=>({l,d:null}));
+  return list.map(l=>({l,d:distMi(myLoc,{lat:l.lat,lng:l.lng})})); }
+function viewBrowse(c){
+  c.innerHTML='';
+  const head=el(`<div class="pad">
+    <div class="seg"><button data-m="map" class="${browseMode==='map'?'active':''}">🗺️ Map</button><button data-m="list" class="${browseMode==='list'?'active':''}">📋 Near me</button></div>
+    <div class="catbar" id="catbar"></div><div id="browseBody"></div></div>`);
+  c.appendChild(head);
+  head.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{browseMode=b.dataset.m;viewBrowse(c);});
+  const cb=$('#catbar',head);
+  [['all','All','🔁'],...CATS.map(x=>[x.id,x.name,x.emoji])].forEach(([id,name,e])=>{
+    const b=el(`<button class="${browseCat===id?'active':''}">${e} ${name}</button>`); b.onclick=()=>{browseCat=id;viewBrowse(c);}; cb.appendChild(b); });
+  let list=openListings(); if(browseCat!=='all') list=list.filter(l=>l.cat===browseCat);
+  const body=$('#browseBody',head);
+  if(browseMode==='map'){
+    body.innerHTML='<button class="btn ghost sm" id="locBtn" style="margin-bottom:10px">📍 Center on my location</button><div id="map"></div>';
+    $('#locBtn',body).onclick=()=>locate(loc=>{ if(loc){ if(mapObj) mapObj.setView([loc.lat,loc.lng],14); toast('Centered on you 📍'); } else toast('Location unavailable'); });
+    setTimeout(()=>initMap(list),30);
+  } else {
+    let arr=withDist(list);
+    if(myLoc) arr.sort((a,b)=>(a.d??1e9)-(b.d??1e9)); else arr.sort((a,b)=>b.l.created-a.l.created);
+    if(!myLoc) body.appendChild(el(`<button class="btn ghost sm" id="askLoc" style="margin-bottom:12px">📍 Sort by distance from me</button>`));
+    if($('#askLoc',body)) $('#askLoc',body).onclick=()=>locate(loc=>{ if(loc){viewBrowse(c);toast('Sorted by nearest 📍');} else toast('Location unavailable'); });
+    if(!arr.length){ body.appendChild(el('<div class="empty">No listings in this category yet.</div>')); return; }
+    arr.forEach(({l,d})=>body.appendChild(listingCard(l,d)));
+  }
+}
+function initMap(list){
+  const node=$('#map'); if(!node) return;
+  if(mapObj){ mapObj.remove(); mapObj=null; }
+  const ctr=myLoc||CFG.DEFAULT_CENTER;
+  mapObj=L.map(node,{zoomControl:true}).setView([ctr.lat,ctr.lng],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapObj);
+  if(myLoc) L.circleMarker([myLoc.lat,myLoc.lng],{radius:8,color:'#1565c0',fillColor:'#42a5f5',fillOpacity:1,weight:3}).addTo(mapObj).bindPopup('You are here');
+  list.forEach(l=>{ const s=user(l.shopId), cat=catOf(l.cat);
+    const ic=L.divIcon({className:'',html:`<div style="background:#fff;border:2px solid #5b3a29;border-radius:50% 50% 50% 0;width:34px;height:34px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3)"><span style="transform:rotate(45deg);font-size:17px">${cat.emoji}</span></div>`,iconSize:[34,34],iconAnchor:[17,34]});
+    const d=myLoc?distMi(myLoc,{lat:l.lat,lng:l.lng}):null;
+    L.marker([l.lat,l.lng],{icon:ic}).addTo(mapObj).bindPopup(`<b>${l.title}</b><br>${s?s.bizName||s.name:''}<br><span style="color:#2e7d52;font-weight:700">${l.qty} ${l.unit}</span> · ${l.window}${d!=null?`<br>📍 ${d.toFixed(1)} mi away`:''}<br><a href="#" onclick="openListing('${l.id}');return false">View & reserve →</a>`); });
+  setTimeout(()=>mapObj.invalidateSize(),120);
+}
+function listingCard(l,d){
+  const s=user(l.shopId), cat=catOf(l.cat);
+  const card=el(`<div class="card listing"><div class="thumb">${cat.emoji}</div><div class="grow">
+    <div class="between"><b>${l.title}</b><span class="qty">${l.qty} ${l.unit}</span></div>
+    <div class="meta">${s?s.bizName||s.name:'—'} · ⭐ ${s?(s.rating||'–'):'–'}${d!=null?` · 📍 ${d.toFixed(1)} mi`:''}</div>
+    <div class="meta">🕒 ${l.window}</div>
+    <div style="margin-top:9px"><span class="chip">Available</span> <span class="chip grey">${cat.name}</span></div></div></div>`);
+  card.onclick=()=>openListing(l.id); return card;
+}
+
+/* ============================================================
+   LISTING DETAIL + RESERVE / DELIVERY
+============================================================ */
+function sheet(html){ const ov=el(`<div class="overlay"><div class="sheet"><div class="grab"></div>${html}</div></div>`);
+  ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); }; document.body.appendChild(ov); return ov; }
+window.openListing=function(id){
+  const l=state.listings.find(x=>x.id===id); if(!l) return;
+  const s=user(l.shopId), cat=catOf(l.cat), u=me(); const reviews=(s&&s.reviews)||[];
+  const d=myLoc?distMi(myLoc,{lat:l.lat,lng:l.lng}):null;
+  const ov=sheet(`<div class="thumb" style="width:100%;height:120px;font-size:54px;border-radius:18px">${cat.emoji}</div>
+    <div class="between" style="margin-top:14px"><h2>${l.title}</h2><span class="qty" style="font-size:20px">${l.qty} ${l.unit}</span></div>
+    <div class="muted">${s?s.bizName||s.name:''} · ⭐ ${s?(s.rating||'–'):'–'} (${reviews.length})${d!=null?` · 📍 ${d.toFixed(1)} mi away`:''}</div>
+    <div class="card" style="margin-top:14px"><div class="row" style="margin-bottom:8px">🕒 <b>${l.window}</b></div>
+      <div class="row" style="margin-bottom:8px">📦 <span class="chip grey">${cat.name}</span></div><div class="meta">${l.note||''}</div></div>
+    <div id="actionArea"></div>
+    <div style="margin-top:10px"><b style="font-size:14px">Reviews</b>
+      ${reviews.length?reviews.map(r=>`<div class="review"><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>${r.text}</div>`).join(''):'<div class="meta" style="padding:8px 0">No reviews yet.</div>'}</div>`);
+  const area=$('#actionArea',ov);
+  if(!u||u.role==='shop'||u.role==='admin'){ area.innerHTML='<div class="meta center" style="padding:10px">Log in as a collector to reserve.</div>'; }
+  else if(collectorLocked(u)){
+    area.innerHTML=`<div class="card" style="background:#fdeeee;border-color:#e7b7b2"><b style="color:var(--danger)">Your free trial has ended</b><div class="meta">Subscribe to reserve pickups & request delivery.</div></div>`;
+    const b=el('<button class="btn amber" style="margin-top:10px">Subscribe to continue</button>'); b.onclick=()=>{ov.remove();openPaywall();}; area.appendChild(b);
+  } else {
+    const b1=el('<button class="btn green" style="margin-bottom:10px">🧺 Reserve for pickup</button>');
+    const b2=el('<button class="btn ghost" style="margin-bottom:10px">🚐 Request delivery</button>');
+    const b3=el('<button class="btn ghost">💬 Message shop</button>');
+    b1.onclick=()=>{reserve(l,'pickup');ov.remove();};
+    b2.onclick=()=>{ov.remove();openDelivery(l);};
+    b3.onclick=()=>{ov.remove();openThread(l.shopId);};
+    area.append(b1,b2,b3);
+  }
+};
+async function reserve(l,mode){
+  const u=me();
+  const r={id:genId('r_'),listingId:l.id,userId:u.id,mode,status:mode==='delivery'?'requested':'reserved',lbs:l.qty,created:Date.now()};
+  state.reservations.push(r); l.status='reserved';
+  const n={id:genId('n_'),userId:l.shopId,text:`${u.name} ${mode==='delivery'?'requested delivery of':'reserved'} "${l.title}" (${l.qty} ${l.unit})`,ts:Date.now(),read:false};
+  state.notifications.push(n);
+  await addResvDB(r); await updateListingDB(l); await addNotifDB(n);
+  toast(mode==='delivery'?'Delivery requested 🚐':'Reserved! 🧺 See My Pickups'); go('reserv');
+}
+/* delivery options: in-app driver OR external courier (Uber/DoorDash) */
+function openDelivery(l){
+  const D=CFG.DELIVERY||{};
+  const ov=sheet(`<h2>Request delivery</h2><p class="muted">Choose how to get "${l.title}" delivered.</p>
+    <button class="deliv-opt" id="inapp"><span class="e">🚐</span><span><b>GroundLoop driver</b><div class="meta">A local partner picks it up & drops it to you. Free trial / subscriber benefit.</div></span></button>
+    <button class="deliv-opt" id="uber"><span class="e">🟦</span><span><b>Order an Uber courier</b><div class="meta">Use Uber Connect / Uber Direct for on-demand delivery.</div></span></button>
+    <button class="deliv-opt" id="dd"><span class="e">🟥</span><span><b>Order via DoorDash</b><div class="meta">On-demand courier through DoorDash.</div></span></button>
+    <p class="meta center" style="margin-top:6px">Courier options open the partner app/site to complete the order.</p>`);
+  $('#inapp',ov).onclick=()=>{ ov.remove(); reserve(l,'delivery'); };
+  $('#uber',ov).onclick=()=>{ window.open(D.uber||'https://www.uber.com/','_blank'); ov.remove(); reserve(l,'delivery'); };
+  $('#dd',ov).onclick=()=>{ window.open(D.doordash||'https://www.doordash.com/','_blank'); ov.remove(); reserve(l,'delivery'); };
+}
+
+/* ============================================================
+   COLLECTOR RESERVATIONS
+============================================================ */
+function viewReservations(c){
+  const u=me();
+  const mine=state.reservations.filter(r=>r.userId===u.id).sort((a,b)=>b.created-a.created);
+  c.innerHTML='<div class="pad"><h1>My Pickups</h1></div>'; const wrap=$('.pad',c);
+  if(!mine.length){ wrap.appendChild(el('<div class="empty">No reservations yet.<br>Browse the map to find free material near you.</div>')); return; }
+  mine.forEach(r=>{ const l=state.listings.find(x=>x.id===r.listingId)||{}; const s=user(l.shopId); const cat=catOf(l.cat);
+    const sc=r.status==='completed'?'<span class="chip">✓ Completed</span>':r.status==='requested'?'<span class="chip amber">🚐 Delivery requested</span>':r.status==='enroute'?'<span class="chip amber">🚐 Driver en route</span>':'<span class="chip amber">Reserved · pickup</span>';
+    const card=el(`<div class="card"><div class="listing"><div class="thumb">${cat.emoji||'☕'}</div><div class="grow">
+      <div class="between"><b>${l.title||'Listing'}</b><span class="qty">${r.lbs} lbs</span></div>
+      <div class="meta">${s?s.bizName||s.name:''} · ${l.window||''}</div><div style="margin-top:8px">${sc}</div></div></div>
+      <div class="row" style="margin-top:12px;gap:8px" id="acts"></div></div>`);
+    const acts=$('#acts',card);
+    if(r.status!=='completed'){
+      const done=el('<button class="btn green sm">Mark collected</button>');
+      done.onclick=async()=>{ r.status='completed'; r.completed=Date.now();
+        const n={id:genId('n_'),userId:l.shopId,text:`${u.name} collected "${l.title}". ${r.lbs} lbs diverted! 🌱`,ts:Date.now(),read:false};
+        state.notifications.push(n); await updateResvDB(r); await addNotifDB(n); toast(`Nice! ${r.lbs} lbs diverted 🌱`); render(); };
+      const rev=el('<button class="btn ghost sm">Review shop</button>'); rev.onclick=()=>openReview(l.shopId,r); acts.append(done,rev);
+    } else { const rev=el('<button class="btn ghost sm">Review shop</button>'); rev.onclick=()=>openReview(l.shopId,r); acts.append(rev); }
+    wrap.appendChild(card); });
+}
+function openReview(shopId,r){
+  let stars=5;
+  const ov=sheet(`<h2>Rate your pickup</h2><p class="muted">${(user(shopId)||{}).bizName||(user(shopId)||{}).name||''}</p>
+    <div id="stars" style="font-size:36px;text-align:center;color:var(--amber);margin:10px 0;letter-spacing:6px"></div>
+    <textarea id="rtext" rows="3" placeholder="How was it?"></textarea><button class="btn green" id="sub" style="margin-top:14px">Submit review</button>`);
+  const draw=()=>$('#stars',ov).innerHTML=[1,2,3,4,5].map(i=>`<span data-i="${i}" style="cursor:pointer">${i<=stars?'★':'☆'}</span>`).join('');
+  draw(); $('#stars',ov).onclick=(e)=>{ if(e.target.dataset.i){stars=+e.target.dataset.i;draw();} };
+  $('#sub',ov).onclick=async()=>{ const s=user(shopId); if(!s)return; s.reviews=s.reviews||[];
+    const rv={stars,text:$('#rtext',ov).value||'(no comment)',by:me().name,ts:Date.now()}; s.reviews.unshift(rv);
+    s.rating=Math.round(s.reviews.reduce((a,b)=>a+b.stars,0)/s.reviews.length*10)/10;
+    await addReviewDB(shopId,rv); await upsertProfile(s); ov.remove(); toast('Thanks for the review! ⭐'); };
+}
+
+/* ============================================================
+   SHOP LISTINGS + POST
+============================================================ */
+function viewMyListings(c){
+  const u=me(); const mine=state.listings.filter(l=>l.shopId===u.id).sort((a,b)=>b.created-a.created);
+  c.innerHTML='<div class="pad"><div class="between"><h1>Your listings</h1></div><div id="ll"></div></div>'; const ll=$('#ll',c);
+  const add=el('<button class="btn green" style="margin:6px 0 16px">＋ Post available material</button>'); add.onclick=openPostListing; ll.appendChild(add);
+  if(!mine.length) ll.appendChild(el('<div class="empty">No listings yet. Post surplus grounds to reach collectors nearby.</div>'));
+  mine.forEach(l=>{ const cat=catOf(l.cat); const res=state.reservations.filter(r=>r.listingId===l.id);
+    const card=el(`<div class="card listing"><div class="thumb">${cat.emoji}</div><div class="grow">
+      <div class="between"><b>${l.title}</b><span class="qty">${l.qty} ${l.unit}</span></div><div class="meta">🕒 ${l.window}</div>
+      <div style="margin-top:8px">${l.status==='open'?'<span class="chip">Open</span>':'<span class="chip amber">Reserved</span>'} ${res.length?`<span class="chip grey">${res.length} reservation(s)</span>`:''}</div></div></div>`);
+    card.onclick=()=>openListing(l.id); ll.appendChild(card); });
+}
+function openPostListing(){
+  const u=me();
+  const ov=sheet(`<h2>Post material</h2>
+    <label>Category</label><select id="cat">${CATS.map(x=>`<option value="${x.id}">${x.emoji} ${x.name}</option>`).join('')}</select>
+    <label>Title</label><input id="title" placeholder="e.g. Fresh espresso grounds">
+    <div class="row"><div class="grow"><label>Quantity</label><input id="qty" type="number" value="10"></div>
+      <div style="width:110px"><label>Unit</label><select id="unit"><option>lbs</option><option>kg</option><option>bags</option></select></div></div>
+    <label>Pickup window</label><input id="win" placeholder="e.g. Today 2–6pm">
+    <label>Notes (optional)</label><textarea id="note" rows="2" placeholder="Containers, access, etc."></textarea>
+    <button class="btn green" id="post" style="margin-top:16px">Publish listing</button>`);
+  $('#post',ov).onclick=async()=>{
+    const title=$('#title',ov).value.trim(), qty=+$('#qty',ov).value, win=$('#win',ov).value.trim();
+    if(!title||!qty||!win){ toast('Add title, quantity & window'); return; }
+    const loc=(u.lat!=null)?{lat:u.lat,lng:u.lng}:(myLoc||CFG.DEFAULT_CENTER);
+    const l={id:genId('l_'),shopId:u.id,cat:$('#cat',ov).value,title,qty,unit:$('#unit',ov).value,window:win,note:$('#note',ov).value,lat:loc.lat,lng:loc.lng,created:Date.now(),status:'open'};
+    state.listings.push(l); await addListingDB(l);
+    const cols=state.users.filter(x=>x.role==='collector');
+    for(const col of cols){ const n={id:genId('n_'),userId:col.id,text:`New listing nearby: ${title} (${qty} ${l.unit})`,ts:Date.now(),read:false}; state.notifications.push(n); await addNotifDB(n); }
+    ov.remove(); toast('Listing published 📣 Collectors notified'); render();
+  };
+}
+
+/* ============================================================
+   IMPACT / SUSTAINABILITY
+============================================================ */
+function viewImpact(c){
+  const u=me(); const completed=state.reservations.filter(r=>r.status==='completed');
+  let scope=completed;
+  if(u.role==='shop'){ const myL=state.listings.filter(l=>l.shopId===u.id).map(l=>l.id); scope=completed.filter(r=>myL.includes(r.listingId)); }
+  const lbs=scope.reduce((a,r)=>a+(r.lbs||0),0), co2=Math.round(lbs*0.34), trees=Math.max(1,Math.round(co2/21));
+  c.innerHTML=`<div class="pad"><h1>${u.role==='shop'?'Your sustainability impact':'Community impact'}</h1>
+    <p class="muted">${u.role==='shop'?'Material diverted via your listings.':'Across all GroundLoop members.'}</p>
+    <div class="row" style="margin:14px 0;gap:10px"><div class="stat"><div class="n">${lbs}</div><div class="l">lbs diverted</div></div>
+      <div class="stat"><div class="n">${co2}</div><div class="l">kg CO₂e avoided</div></div><div class="stat"><div class="n">${trees}</div><div class="l">tree-yrs equiv.</div></div></div>
+    <div class="card"><b>Completion rate</b><div class="meta">Pickups: ${completed.filter(r=>r.mode==='pickup').length} · Deliveries: ${completed.filter(r=>r.mode==='delivery').length}</div>
+      <div style="height:12px;background:#eee5d8;border-radius:99px;margin-top:10px;overflow:hidden"><div style="height:100%;width:${state.reservations.length?Math.round(completed.length/state.reservations.length*100):0}%;background:var(--green)"></div></div>
+      <div class="meta" style="margin-top:6px">${state.reservations.length?Math.round(completed.length/state.reservations.length*100):0}% of reservations fulfilled</div></div>
+    <div class="card"><b>By category</b><div id="bycat" style="margin-top:8px"></div></div>
+    ${u.role==='shop'?'<button class="btn ghost" id="report">⬇ Download sustainability report</button>':''}</div>`;
+  const bc=$('#bycat',c);
+  CATS.forEach(cat=>{ const ids=state.listings.filter(l=>l.cat===cat.id).map(l=>l.id);
+    const sum=scope.filter(r=>ids.includes(r.listingId)).reduce((a,r)=>a+r.lbs,0);
+    if(sum>0) bc.appendChild(el(`<div class="between" style="padding:5px 0"><span>${cat.emoji} ${cat.name}</span><b>${sum} lbs</b></div>`)); });
+  if(!bc.children.length) bc.innerHTML='<div class="meta">No completed pickups yet.</div>';
+  if($('#report',c)) $('#report',c).onclick=()=>downloadReport(u,lbs,co2,scope);
+}
+function downloadReport(u,lbs,co2,scope){
+  const lines=['GroundLoop Sustainability Report','Business: '+(u.bizName||u.name),'Generated: '+new Date().toLocaleString(),
+    '----------------------------------------','Total material diverted: '+lbs+' lbs','Estimated CO2e avoided: '+co2+' kg','Completed handoffs: '+scope.length,'','Detail:',
+    ...scope.map(r=>{const l=state.listings.find(x=>x.id===r.listingId)||{};return ` - ${fmtDate(r.completed||r.created)} · ${l.title||'item'} · ${r.lbs} lbs · ${r.mode}`;}),'','Generated by GroundLoop.'].join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([lines],{type:'text/plain'})); a.download='groundloop-sustainability-report.txt'; a.click(); toast('Report downloaded 📄');
+}
+
+/* ============================================================
+   DELIVERY PARTNER JOBS
+============================================================ */
+function viewJobs(c){
+  const u=me();
+  const open=state.reservations.filter(r=>r.mode==='delivery'&&(r.status==='requested'||(r.status==='enroute'&&r.driverId===u.id)));
+  const D=CFG.DELIVERY||{};
+  c.innerHTML=`<div class="pad"><h1>Delivery jobs</h1><p class="muted">Accept requests & deliver material to collectors.</p>
+    <div class="card" style="background:#fff6ec"><b>Want more delivery work?</b><div class="meta" style="margin:6px 0 10px">Sign up with partner networks to earn on your schedule.</div>
+      <div class="row" style="gap:8px"><button class="btn ghost sm" id="uberD">Drive with Uber</button><button class="btn ghost sm" id="ddD">Dash with DoorDash</button></div></div>
+    <div id="j"></div></div>`;
+  $('#uberD',c).onclick=()=>window.open(D.uberDriverSignup||'https://www.uber.com/signup/drive/','_blank');
+  $('#ddD',c).onclick=()=>window.open(D.doordashDasherSignup||'https://dasher.doordash.com/','_blank');
+  const j=$('#j',c);
+  if(!open.length){ j.appendChild(el('<div class="empty">No delivery requests right now. Check back soon.</div>')); return; }
+  open.forEach(r=>{ const l=state.listings.find(x=>x.id===r.listingId)||{}; const s=user(l.shopId); const col=user(r.userId);
+    const card=el(`<div class="card"><div class="between"><b>${l.title}</b><span class="qty">${r.lbs} lbs</span></div>
+      <div class="meta">From: ${s?s.bizName||s.name:''}</div><div class="meta">To: ${col?col.name:''}</div><div class="meta">🕒 ${l.window||''}</div>
+      <div class="row" style="margin-top:10px" id="a"></div></div>`); const a=$('#a',card);
+    if(r.status==='requested'){ const b=el('<button class="btn green sm">Accept job</button>');
+      b.onclick=async()=>{ r.status='enroute'; r.driverId=u.id; const n={id:genId('n_'),userId:r.userId,text:`🚐 ${u.name} is delivering your ${l.title}`,ts:Date.now(),read:false}; state.notifications.push(n); await updateResvDB(r); await addNotifDB(n); toast('Job accepted 🚐'); render(); }; a.appendChild(b);
+    } else { const b=el('<button class="btn green sm">Mark delivered</button>');
+      b.onclick=async()=>{ r.status='completed'; r.completed=Date.now(); const n={id:genId('n_'),userId:r.userId,text:`✓ Your ${l.title} was delivered. ${r.lbs} lbs diverted! 🌱`,ts:Date.now(),read:false}; state.notifications.push(n); await updateResvDB(r); await addNotifDB(n); toast('Delivered ✓'); render(); }; a.appendChild(b); }
+    j.appendChild(card); });
+}
+
+/* ============================================================
+   ALERTS / NOTIFICATIONS
+============================================================ */
+function viewAlerts(c){ renderNotifList(c,false); }
+function openNotifications(){ const ov=sheet('<h2>Notifications</h2><div id="nl"></div>'); renderNotifList($('#nl',ov),true); }
+async function renderNotifList(container,inSheet){
+  const u=me(); const mine=state.notifications.filter(n=>n.userId===u.id).sort((a,b)=>b.ts-a.ts);
+  const wrap=inSheet?container:(()=>{container.innerHTML='<div class="pad"><h1>Alerts</h1><div id="nl"></div></div>';return $('#nl',container);})();
+  if(!mine.length) wrap.innerHTML='<div class="empty">No notifications yet.</div>';
+  else mine.forEach(n=>wrap.appendChild(el(`<div class="notif">${n.read?'<div style="width:9px"></div>':'<div class="dot"></div>'}<div><div>${n.text}</div><div class="meta">${fmtDate(n.ts)} · ${new Date(n.ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</div></div></div>`)));
+  const unreadIds=mine.filter(n=>!n.read).map(n=>n.id); mine.forEach(n=>n.read=true);
+  await markNotifsRead(unreadIds);
+  const bell=$('#bell'); if(bell) bell.innerHTML='🔔';
+}
+
+/* ============================================================
+   MESSAGING
+============================================================ */
+function threadKey(a,b){ return [a,b].sort().join('|'); }
+function viewInbox(c){
+  const u=me(); const keys=Object.keys(state.threads).filter(k=>k.split('|').includes(u.id));
+  c.innerHTML='<div class="pad"><h1>Inbox</h1><div id="tl"></div></div>'; const tl=$('#tl',c);
+  if(!keys.length){ tl.appendChild(el('<div class="empty">No messages yet. Message a shop from a listing to coordinate pickup.</div>')); return; }
+  keys.forEach(k=>{ const other=k.split('|').find(x=>x!==u.id); const o=user(other); const msgs=state.threads[k]; const last=msgs[msgs.length-1];
+    const card=el(`<div class="card"><div class="between"><b>${o?(o.bizName||o.name):'User'}</b><span class="meta">${fmtDate(last.ts)}</span></div><div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${last.text}</div></div>`);
+    card.onclick=()=>openThread(other); tl.appendChild(card); });
+}
+function openThread(otherId){
+  const u=me(); const o=user(otherId); const k=threadKey(u.id,otherId); state.threads[k]=state.threads[k]||[];
+  const ov=sheet(`<h2>${o?(o.bizName||o.name):'Chat'}</h2><div id="msgs" style="margin:14px 0;max-height:50vh;overflow-y:auto"></div>
+    <div class="row"><input id="mi" placeholder="Type a message…" class="grow"><button class="btn sm" id="send">Send</button></div>`);
+  const draw=()=>{ const box=$('#msgs',ov); box.innerHTML=''; if(!state.threads[k].length) box.innerHTML='<div class="meta center">Say hello 👋</div>';
+    state.threads[k].forEach(m=>box.appendChild(el(`<div class="msg ${m.from===u.id?'me':'them'}">${m.text}</div>`))); box.scrollTop=box.scrollHeight; };
+  draw();
+  const send=async()=>{ const v=$('#mi',ov).value.trim(); if(!v) return; const m={from:u.id,text:v,ts:Date.now()};
+    state.threads[k].push(m); $('#mi',ov).value=''; draw(); await addMsgDB(k,m);
+    if(MODE==='demo' && o && o.role==='shop'){ setTimeout(()=>{ state.threads[k].push({from:o.id,text:'Thanks! Grounds are bagged by the side door — see you in the window 👍',ts:Date.now()}); lsSave(); draw(); },900); } };
+  $('#send',ov).onclick=send; $('#mi',ov).addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+}
+
+/* ============================================================
+   SUBSCRIPTION / PAYWALL  (Stripe Payment Links or mock)
+============================================================ */
+function openPaywall(){
+  const u=me(); const left=trialDaysLeft(u);
+  const ov=sheet(`<h2>GroundLoop Plus</h2>
+    <p class="muted">${u.plan==='active'?'You are subscribed.':left>0?`You have ${left} day(s) left on your free trial.`:'Your free trial has ended.'}</p>
+    <div class="price-card feat"><div class="chip" style="position:absolute;top:14px;right:14px">Most popular</div>
+      <div>Monthly</div><div class="amt">$6<span style="font-size:15px;color:var(--muted)">/mo</span></div>
+      <ul class="feat-list"><li>Unlimited reservations</li><li>Delivery requests</li><li>Real-time nearby alerts</li><li>Priority on high-demand listings</li><li>Cancel anytime</li></ul>
+      <button class="btn green" id="buyM" style="margin-top:14px">${u.plan==='active'?'Current plan':'Start — $6/mo'}</button></div>
+    <div class="price-card"><div>Annual <span class="chip">Save 30%</span></div><div class="amt">$50<span style="font-size:15px;color:var(--muted)">/yr</span></div>
+      <ul class="feat-list"><li>Everything in Monthly</li><li>Two months free</li></ul>
+      <button class="btn ghost" id="buyA" style="margin-top:14px">Choose annual</button></div>
+    <p class="meta center">Shops & delivery partners always free.${(CFG.STRIPE_MONTHLY_LINK)?'':' Demo billing — no real charge.'}</p>
+    ${u.plan==='active'?'<button class="btn ghost" id="cancel" style="margin-top:8px">Cancel subscription</button>':''}`);
+  const buy=(plan)=>{ const link=plan==='annual'?CFG.STRIPE_ANNUAL_LINK:CFG.STRIPE_MONTHLY_LINK;
+    if(link){ const url=new URL(link); url.searchParams.set('client_reference_id',u.id);
+      url.searchParams.set('prefilled_email',u.email||''); ov.remove(); location.href=url.toString(); }
+    else { ov.remove(); mockCheckout(plan, plan==='annual'?'$50/yr':'$6/mo'); } };
+  $('#buyM',ov).onclick=()=>{ if(u.plan==='active'){toast('Already subscribed');return;} buy('monthly'); };
+  $('#buyA',ov).onclick=()=>buy('annual');
+  if($('#cancel',ov)) $('#cancel',ov).onclick=async()=>{ u.plan='trial'; u.trialStart=Date.now()-TRIAL_DAYS*DAY; await upsertProfile(u); ov.remove(); toast('Subscription cancelled'); render(); };
+}
+function mockCheckout(plan,label){
+  const ov=sheet(`<h2>Checkout</h2><p class="muted">GroundLoop Plus · ${label}</p>
+    <div class="card"><label>Card number</label><input id="cc" value="4242 4242 4242 4242">
+    <div class="row"><div class="grow"><label>Expiry</label><input id="exp" value="12/28"></div><div style="width:120px"><label>CVC</label><input id="cvc" value="123"></div></div>
+    <div class="meta" style="margin-top:10px">🔒 Demo only — Stripe test card pre-filled. No charge.</div></div>
+    <button class="btn green" id="pay">Pay & subscribe</button>`);
+  $('#pay',ov).onclick=async()=>{ const u=me(); u.plan='active'; u.planType=plan; await upsertProfile(u); ov.remove(); toast("🎉 You're subscribed! Full access unlocked."); render(); };
+}
+
+/* ============================================================
+   ADMIN
+============================================================ */
+function viewAdmin(c){
+  const shops=state.users.filter(u=>u.role==='shop').length, cols=state.users.filter(u=>u.role==='collector').length;
+  const subs=state.users.filter(u=>u.role==='collector'&&u.plan==='active').length;
+  const lbs=state.reservations.filter(r=>r.status==='completed').reduce((a,r)=>a+r.lbs,0); const mrr=subs*6;
+  c.innerHTML=`<div class="pad"><h1>Admin</h1><p class="muted">Platform overview & success metrics.</p>
+    <div class="row" style="margin:14px 0;gap:10px"><div class="stat"><div class="n">${shops}</div><div class="l">Active shops</div></div>
+      <div class="stat"><div class="n">${cols}</div><div class="l">Collectors</div></div><div class="stat"><div class="n">${state.listings.length}</div><div class="l">Listings</div></div></div>
+    <div class="row" style="margin-bottom:14px;gap:10px"><div class="stat"><div class="n">${lbs}</div><div class="l">lbs diverted</div></div>
+      <div class="stat"><div class="n">${subs}</div><div class="l">Paid subs</div></div><div class="stat"><div class="n">$${mrr}</div><div class="l">MRR</div></div></div>
+    <div class="card"><b>Users</b><div id="ulist" style="margin-top:8px"></div></div></div>`;
+  const ul=$('#ulist',c);
+  state.users.forEach(u=>ul.appendChild(el(`<div class="between" style="padding:7px 0;border-top:1px solid var(--line)"><span>${u.name} <span class="meta">· ${u.role}</span></span>${u.role==='collector'?`<span class="chip ${u.plan==='active'?'':'grey'}">${u.plan==='active'?'Paid':(trialDaysLeft(u)>0?'Trial':'Expired')}</span>`:''}</div>`)));
+}
+
+/* ============================================================
+   PROFILE
+============================================================ */
+function viewProfile(c){
+  const u=me(); const left=trialDaysLeft(u); let planRow='';
+  if(u.role==='collector'){
+    planRow=u.plan==='active'
+      ? `<div class="card"><div class="between"><div><b>GroundLoop Plus</b><div class="meta">${u.planType==='annual'?'Annual':'Monthly'} · active</div></div><span class="chip">Subscribed</span></div><button class="btn ghost sm" id="manage" style="margin-top:10px">Manage plan</button></div>`
+      : `<div class="card" style="background:#fff6ec"><div class="between"><div><b>Free trial</b><div class="meta">${left>0?left+' days remaining':'Ended'}</div></div><span class="chip amber">${left>0?'Trial':'Expired'}</span></div><button class="btn amber sm" id="manage" style="margin-top:10px">Subscribe</button></div>`;
+  }
+  c.innerHTML=`<div class="pad"><div class="center" style="margin:6px 0 18px">
+      <div class="thumb" style="width:80px;height:80px;margin:0 auto;font-size:38px;border-radius:50%">${u.role==='shop'?'🏪':u.role==='driver'?'🚐':u.role==='admin'?'🛠️':'🌱'}</div>
+      <h2 style="margin-top:10px">${u.bizName||u.name}</h2><div class="muted">${u.email} · ${u.role}</div>${u.rating?`<div class="stars" style="margin-top:4px">⭐ ${u.rating}</div>`:''}</div>
+    ${planRow}
+    <div class="card"><b>Account</b>
+      <div class="between" style="padding:8px 0;border-top:1px solid var(--line);margin-top:8px"><span>Member since</span><span class="meta">${fmtDate(u.joined)}</span></div>
+      <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span>Mode</span><span class="meta">${MODE==='live'?'Live (cloud)':'Demo (local)'}</span></div></div>
+    ${MODE==='demo'?'<button class="btn ghost" id="reset" style="margin-bottom:10px">↺ Reset demo data</button>':''}
+    <button class="btn" id="logout" style="background:var(--danger)">Log out</button></div>`;
+  if($('#manage',c)) $('#manage',c).onclick=openPaywall;
+  $('#logout',c).onclick=async()=>{ if(MODE==='live') await sb.auth.signOut(); state.session=null; lsSave(); render(); };
+  if($('#reset',c)) $('#reset',c).onclick=()=>{ if(confirm('Reset all demo data?')){ localStorage.removeItem(LS_KEY); seedDemo(); toast('Demo data reset'); render(); } };
+}
+
+/* ---------------- boot ---------------- */
+boot();
+</script>
+</body>
+</html>

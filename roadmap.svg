@@ -1,0 +1,98 @@
+<svg viewBox="0 0 1100 760" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f1e8"/><stop offset="1" stop-color="#efe3d2"/>
+    </linearGradient>
+    <linearGradient id="brown" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b3a29"/><stop offset="1" stop-color="#3f2719"/>
+    </linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c8a27a"/><stop offset="1" stop-color="#2e7d52"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#3c2814" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1100" height="760" fill="url(#bg)"/>
+
+  <!-- Header -->
+  <text x="550" y="62" text-anchor="middle" font-size="40" font-weight="800" fill="#241910">☕🔁  How GroundLoop works</text>
+  <text x="550" y="96" text-anchor="middle" font-size="19" fill="#8a7a6c">Real-time, location-based marketplace for used coffee grounds &amp; organic byproducts</text>
+
+  <!-- ============ COLLECTOR LANE ============ -->
+  <text x="70" y="168" font-size="22" font-weight="800" fill="#2e7d52">🌱  Collectors — gardeners, composters, growers</text>
+  <line x1="70" y1="250" x2="1030" y2="250" stroke="url(#path)" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 14"/>
+
+  <!-- collector steps -->
+  <g filter="url(#sh)">
+    <circle cx="160" cy="250" r="30" fill="url(#brown)"/><text x="160" y="259" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">1</text>
+    <rect x="78" y="298" width="164" height="118" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="160" y="332" text-anchor="middle" font-size="30">📍</text>
+  <text x="160" y="364" text-anchor="middle" font-size="16" font-weight="700" fill="#241910">Share location</text>
+  <text x="160" y="388" text-anchor="middle" font-size="12.5" fill="#8a7a6c">Allow GPS to see</text>
+  <text x="160" y="404" text-anchor="middle" font-size="12.5" fill="#8a7a6c">what's nearest you</text>
+
+  <g filter="url(#sh)">
+    <circle cx="392" cy="250" r="30" fill="url(#brown)"/><text x="392" y="259" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">2</text>
+    <rect x="310" y="298" width="164" height="118" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="392" y="332" text-anchor="middle" font-size="30">🗺️</text>
+  <text x="392" y="364" text-anchor="middle" font-size="16" font-weight="700" fill="#241910">Browse live map</text>
+  <text x="392" y="388" text-anchor="middle" font-size="12.5" fill="#8a7a6c">Real-time listings</text>
+  <text x="392" y="404" text-anchor="middle" font-size="12.5" fill="#8a7a6c">sorted by distance</text>
+
+  <g filter="url(#sh)">
+    <circle cx="624" cy="250" r="30" fill="url(#brown)"/><text x="624" y="259" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">3</text>
+    <rect x="542" y="298" width="164" height="118" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="624" y="332" text-anchor="middle" font-size="30">🧺</text>
+  <text x="624" y="364" text-anchor="middle" font-size="16" font-weight="700" fill="#241910">Reserve / deliver</text>
+  <text x="624" y="388" text-anchor="middle" font-size="12.5" fill="#8a7a6c">Free pickup or</text>
+  <text x="624" y="404" text-anchor="middle" font-size="12.5" fill="#8a7a6c">courier to your door</text>
+
+  <g filter="url(#sh)">
+    <circle cx="856" cy="250" r="30" fill="#2e7d52"/><text x="856" y="259" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">4</text>
+    <rect x="774" y="298" width="164" height="118" rx="16" fill="#fff" stroke="#bfe0cd"/>
+  </g>
+  <text x="856" y="332" text-anchor="middle" font-size="30">🌱</text>
+  <text x="856" y="364" text-anchor="middle" font-size="16" font-weight="700" fill="#241910">Collect &amp; track</text>
+  <text x="856" y="388" text-anchor="middle" font-size="12.5" fill="#8a7a6c">Watch your pounds</text>
+  <text x="856" y="404" text-anchor="middle" font-size="12.5" fill="#8a7a6c">diverted add up</text>
+
+  <!-- divider -->
+  <line x1="70" y1="470" x2="1030" y2="470" stroke="#e0d3c0" stroke-width="2"/>
+
+  <!-- ============ SHOP LANE ============ -->
+  <text x="70" y="528" font-size="22" font-weight="800" fill="#d98324">🏪  Coffee shops — free, forever</text>
+  <line x1="70" y1="610" x2="1030" y2="610" stroke="url(#path)" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 14"/>
+
+  <g filter="url(#sh)">
+    <circle cx="160" cy="610" r="30" fill="url(#brown)"/><text x="160" y="619" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">1</text>
+    <rect x="78" y="658" width="164" height="86" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="160" y="694" text-anchor="middle" font-size="26">📝</text>
+  <text x="160" y="724" text-anchor="middle" font-size="15" font-weight="700" fill="#241910">Create profile</text>
+
+  <g filter="url(#sh)">
+    <circle cx="392" cy="610" r="30" fill="url(#brown)"/><text x="392" y="619" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">2</text>
+    <rect x="310" y="658" width="164" height="86" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="392" y="694" text-anchor="middle" font-size="26">📣</text>
+  <text x="392" y="724" text-anchor="middle" font-size="15" font-weight="700" fill="#241910">Post material</text>
+
+  <g filter="url(#sh)">
+    <circle cx="624" cy="610" r="30" fill="url(#brown)"/><text x="624" y="619" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">3</text>
+    <rect x="542" y="658" width="164" height="86" rx="16" fill="#fff" stroke="#e7ddcf"/>
+  </g>
+  <text x="624" y="694" text-anchor="middle" font-size="26">🤝</text>
+  <text x="624" y="724" text-anchor="middle" font-size="15" font-weight="700" fill="#241910">Hand it off</text>
+
+  <g filter="url(#sh)">
+    <circle cx="856" cy="610" r="30" fill="#d98324"/><text x="856" y="619" text-anchor="middle" font-size="24" font-weight="800" fill="#fff">4</text>
+    <rect x="774" y="658" width="164" height="86" rx="16" fill="#fff" stroke="#f0d3a8"/>
+  </g>
+  <text x="856" y="694" text-anchor="middle" font-size="26">📊</text>
+  <text x="856" y="724" text-anchor="middle" font-size="15" font-weight="700" fill="#241910">Report impact</text>
+</svg>
