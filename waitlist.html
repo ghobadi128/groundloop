@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GroundLoop — coffee grounds, going places</title>
+<meta name="description" content="A live local marketplace giving used coffee grounds a second life. Join the waitlist.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♻️</text></svg>">
+<style>
+  /* System fonts only — no font CDNs, no trackers, nothing phoning home. */
+  :root{
+    --ink:#2c2118; --paper:#f6efe3; --paper-2:#efe4d0; --green:#2e6b48;
+    --rust:#b5541f; --line:#d8c9ae; --soft:#7d6a55;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:Charter,'Iowan Old Style',Georgia,'Times New Roman',serif;
+    font-size:19px; line-height:1.55;
+    background-image:radial-gradient(ellipse 900px 400px at 85% -5%, #eadfc9 0%, transparent 60%),
+                     radial-gradient(ellipse 700px 500px at -10% 100%, #ece0cb 0%, transparent 55%);
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:0 24px}
+  .sans{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif}
+
+  header{padding:34px 0 0}
+  .brand{font-size:17px;letter-spacing:.16em;text-transform:uppercase;font-weight:400}
+  .brand b{color:var(--green)}
+  .rule{border:0;border-top:1px solid var(--line);margin:18px 0 0}
+
+  .hero{padding:64px 0 26px}
+  .kicker{font-style:italic;color:var(--rust);font-size:20px;margin-bottom:18px}
+  h1{font-weight:500;font-size:clamp(38px,7vw,58px);line-height:1.08;letter-spacing:-.015em}
+  h1 em{font-style:italic;color:var(--green)}
+  .dek{margin-top:26px;font-size:21px;color:#4a3c2e;max-width:560px}
+  .dek strong{color:var(--ink)}
+
+  .fact{display:flex;gap:16px;align-items:baseline;margin:44px 0 0;padding:22px 0;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .fact .n{font-size:44px;font-weight:500;color:var(--green);letter-spacing:-.02em;white-space:nowrap}
+  .fact .t{font-size:16px;color:var(--soft);font-style:italic}
+
+  .how{padding:52px 0 8px}
+  .how h2{font-size:15px;letter-spacing:.18em;text-transform:uppercase;font-weight:400;color:var(--soft);margin-bottom:26px}
+  .path{margin-bottom:26px}
+  .path p{margin-top:4px}
+  .path .who{font-style:italic;color:var(--rust)}
+
+  .form-block{margin:56px 0 0;background:var(--paper-2);border:1px solid var(--line);padding:38px 34px 34px;position:relative}
+  .form-block::before{content:"№ 01";position:absolute;top:-13px;left:30px;background:var(--paper-2);
+    padding:0 12px;font-size:13px;letter-spacing:.2em;color:var(--soft)}
+  .form-block h2{font-size:30px;font-weight:500;letter-spacing:-.01em}
+  .form-block .sub{color:var(--soft);font-style:italic;margin:8px 0 26px;font-size:17px}
+  label{display:block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:18px 0 7px}
+  input[type=text],input[type=email],select{
+    width:100%;padding:13px 14px;font:inherit;font-size:18px;color:var(--ink);
+    background:#fffdf8;border:1px solid var(--line);border-radius:2px;outline:none}
+  input:focus,select:focus{border-color:var(--green)}
+  button{
+    margin-top:28px;width:100%;padding:17px;font-size:17px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--green);color:#f6efe3;border:none;border-radius:2px;cursor:pointer;
+    font-family:inherit;transition:background .15s}
+  button:hover{background:#245539}
+  .fine{margin-top:16px;font-size:14.5px;color:var(--soft);font-style:italic}
+  .thanks{display:none;text-align:center;padding:30px 10px 10px}
+  .thanks h3{font-size:26px;color:var(--green)}
+  .thanks p{margin-top:10px;color:var(--soft)}
+
+  .privacy{margin:56px 0 0;padding-top:24px;border-top:1px solid var(--line);font-size:15.5px;color:var(--soft)}
+  .privacy b{color:var(--ink);font-weight:500}
+
+  footer{padding:44px 0 60px;font-size:14.5px;color:var(--soft)}
+  footer a{color:var(--green)}
+  .demo-link{display:inline-block;margin-top:6px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">Ground<b>Loop</b> — est. 2026, San Francisco</div>
+    <hr class="rule">
+  </header>
+
+  <section class="hero">
+    <p class="kicker">Coming soon to your neighborhood —</p>
+    <h1>Your café's coffee grounds could be growing <em>someone's mushrooms</em> by Saturday.</h1>
+    <p class="dek">GroundLoop is a live local map connecting coffee shops with the gardeners,
+    composters, mushroom growers, schools, and artists who want their used grounds.
+    <strong>Free pickup for shops. Free material for growers.</strong> Nothing good goes to landfill.</p>
+  </section>
+
+  <div class="fact">
+    <span class="n">40 lbs</span>
+    <span class="t">— what a single busy café discards in coffee grounds every day. Multiply by every café on your street.</span>
+  </div>
+
+  <section class="how">
+    <h2>How it will work</h2>
+    <div class="path">
+      <span class="who">If you grow things —</span>
+      <p>Open the map, see what's free near you right now, reserve it, pick it up (or have it
+      delivered). Your first month is free; after that it's $6 a month — less than one latte.</p>
+    </div>
+    <div class="path">
+      <span class="who">If you run a café, brewery, or garden center —</span>
+      <p>Post your surplus in thirty seconds. A neighbor collects it on your schedule. You get less
+      trash and a sustainability report worth bragging about. Free, forever.</p>
+    </div>
+  </section>
+
+  <section class="form-block" id="join">
+    <form id="wl" action="https://formsubmit.co/ghobadi.h@gmail.com" method="POST">
+      <h2>Be first in the loop.</h2>
+      <p class="sub">We'll write once, when GroundLoop opens in your city. That's the whole deal.</p>
+
+      <input type="hidden" name="_subject" value="🌱 New GroundLoop waitlist signup">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+
+      <label for="f-name">Name</label>
+      <input id="f-name" type="text" name="name" required placeholder="Alex Rivera">
+
+      <label for="f-email">Email</label>
+      <input id="f-email" type="email" name="email" required placeholder="you@example.com">
+
+      <label for="f-city">City / neighborhood</label>
+      <input id="f-city" type="text" name="city" required placeholder="Oakland — Temescal">
+
+      <label for="f-role">I am mostly a…</label>
+      <select id="f-role" name="role" required>
+        <option value="" disabled selected>Choose one</option>
+        <option>Gardener / composter</option>
+        <option>Mushroom grower</option>
+        <option>Coffee shop / café</option>
+        <option>Brewery or other business</option>
+        <option>School or community garden</option>
+        <option>Delivery partner</option>
+        <option>Just curious</option>
+      </select>
+
+      <button type="submit">Join the waitlist</button>
+      <p class="fine">No spam, no sharing, no "marketing partners." Unsubscribe by replying "stop."</p>
+    </form>
+    <div class="thanks" id="thanks">
+      <h3>You're in. 🌱</h3>
+      <p>Thanks — we'll be in touch when GroundLoop opens near you.<br>
+      Meanwhile, the demo below is open to everyone.</p>
+    </div>
+  </section>
+
+  <section class="privacy">
+    <b>Our privacy stance, in plain words:</b> this page sets no cookies, runs no analytics, and
+    loads nothing from ad networks. The form above sends your answers to one human inbox and
+    nowhere else. The app itself uses OpenStreetMap (not Google Maps), asks for your location only
+    when you tap "near me," and collects the minimum needed to match grounds with growers.
+  </section>
+
+  <footer>
+    Impatient? <a class="demo-link" href="./">Poke around the working demo →</a><br><br>
+    GroundLoop · San Francisco Bay Area · <a href="mailto:ghobadi.h@gmail.com">say hello</a>
+  </footer>
+
+</div>
+<script>
+  // If FormSubmit redirected back with ?joined=1, or we submit via fetch, show thanks inline.
+  const form = document.getElementById("wl"), thanks = document.getElementById("thanks");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button");
+    btn.textContent = "Sending…"; btn.disabled = true;
+    try{
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form), headers:{Accept:"application/json"} });
+      if(!res.ok) throw new Error();
+      form.style.display = "none"; thanks.style.display = "block";
+    }catch(err){
+      // Fallback: normal POST (FormSubmit's own thank-you page)
+      form.onsubmit = null; form.submit();
+    }
+  });
+</script>
+</body>
+</html>
